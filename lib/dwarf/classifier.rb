@@ -2,15 +2,16 @@ module Dwarf
   class Classifier
     attr_accessor :examples
     attr_accessor :example_attributes
+    attr_accessor :classifier_logic
 
     def initialize()
       @examples, @example_attributes = {}, []
+      @decision_tree = TreeNode.new("ROOT")
     end
 
     def add_example(example_record, classification)
       @examples[example_record]=classification
       @example_attributes |= example_record.attributes
-      @decision_tree = TreeNode.new("ROOT")
     end
 
     def classify(example)
@@ -20,21 +21,85 @@ module Dwarf
     def learn!
       @decision_tree.examples = @examples.keys
       pending = []
-      pending << @decision_tree
+      pending.push @decision_tree
       until pending.empty?
         node = pending.pop
         if classification = homogenous_examples(node)
           node.classification = classification
+        elsif no_valuable_attributes?(node) && node.parent
+          node.parent.classification= expected_value(node.examples)
         elsif no_valuable_attributes?(node)
-          node.parent.classification = expected_value(node)
+          classifier_logic = expected_value(node.examples)
+        elsif false #stub branch
+          #C4.5 would also allow for previously unseen classifications
+          #dwarf's API dictates all classifications are known before learning
+          #starts
+        else
+          infogains = {}
+          @example_attributes.each do |example_attribute|
+            infogains[information_gain(node.examples,example_attribute)] = example_attribute
+          end
+          best_gain = infogains.keys.sort[0]
+          best_attribute = infogains[best_gain]
+          split(node,best_attribute).each {|child_node| pending.push(child_node)}
         end
       end
+      self.classifier_logic = codify_tree(@decision_tree)
+      implement_classify
     end
 
     private
 
-    def expected_value(node)
-      classification_map(node.examples)
+    def implement_classify
+      classify_impl = "def classify(example)\n#{self.classifier_logic}\nend"
+      self.instance_eval classify_impl
+    end
+
+    def codify_tree(decision_tree)
+      lines = [""]
+      depth = 1
+      codify_node(decision_tree, lines, depth)
+      lines.join("\n")
+    end
+
+    def codify_node(decision_tree, lines, depth)
+      if decision_tree.attribute
+        lines << ("  "*depth)+"case example.#{decision_tree.attribute}"
+        decision_tree.children.each do |child|
+          lines << ("  "*depth)+"when #{child.name}"
+          codify_node(child, lines, depth + 1)
+        end
+        lines << ("  "*depth)+"end"
+      elsif decision_tree.classification
+        classification = decision_tree.classification
+        if classification.class == Symbol
+          classification_string = ":#{classification}"
+        elsif classification.class == String
+          classification_string = "\"#{classification}\""
+        else
+          classification_string = classification.to_s
+        end
+        lines << ("  "*depth)+"return #{classification_string}"
+      end
+    end
+    
+    def split(node, attribute)
+      node.attribute = attribute
+      example_subset = node.examples
+      examples_inversion = invert_with_dups(attribute_map(example_subset,attribute))
+      examples_inversion.each do |key, value|
+        child_node = TreeNode.new(key)
+        child_node.examples = value
+        node << child_node
+      end
+      node.examples = nil
+      node.children
+    end
+
+    def expected_value(example_subset)
+      examples_inversion = invert_with_dups(classification_map(example_subset))
+      occurrences = examples_inversion.merge(examples_inversion) { |key, value| value.length }
+      occurrences.keys.sort { |key| occurrences[key] }[0]
     end
 
     def no_valuable_attributes?(node)
@@ -55,18 +120,20 @@ module Dwarf
     end
 
     def entropy(example_subset)
+      set_size = example_subset.length.to_f
       examples_inversion = invert_with_dups(classification_map(example_subset))
-      frequencies = examples_inversion.merge(examples_inversion) { |key, value| value.length }
-      0 - classifications(example_subset).inject(0) do |sum, classification|
-        sum + frequencies[classification] * Math.log2(frequencies[classification])
+      occurences = examples_inversion.merge(examples_inversion) { |key, value| value.length.to_f }
+      0.0 - classifications(example_subset).inject(0.0) do |sum, classification|
+        sum + ((occurences[classification]/set_size)* Math.log2((occurences[classification]/set_size)))
       end
     end
 
     def information_gain(example_subset,attribute)
+      set_size = example_subset.length.to_f
       examples_inversion = invert_with_dups(attribute_map(example_subset,attribute))
-      frequencies = examples_inversion.merge(examples_inversion) { |key, value| value.length }
-      entropy(example_subset) - attribute_values(example_subset,attribute).inject(0) do |sum, attribute_value|
-        sum + frequencies[attribute_value] * entropy(examples_inversion[attribute_value])
+      occurrences = examples_inversion.merge(examples_inversion) { |key, value| value.length }
+      entropy(example_subset) - attribute_values(example_subset,attribute).inject(0.0) do |sum, attribute_value|
+        sum + (occurrences[attribute_value]/set_size) * entropy(examples_inversion[attribute_value])
       end
     end
 

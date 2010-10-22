@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    quarry (0.0.1)
+    dwarf (0.0.1)
       rubytree (>= 0.8.1)
 
 GEM
@@ -25,6 +25,6 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (>= 1.0.0)
-  quarry!
+  dwarf!
   rspec (>= 2.0.1)
   rubytree (>= 0.8.1)
