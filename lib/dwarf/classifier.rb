@@ -9,6 +9,12 @@ module Dwarf
       @decision_tree = TreeNode.new("ROOT")
     end
 
+    def add_examples(example_hash)
+      example_hash.each do |example, classification|
+        add_example(example, classification)
+      end
+    end
+
     def add_example(example_record, classification)
       @examples[example_record]=classification
       @example_attributes |= example_record.attributes
@@ -22,6 +28,7 @@ module Dwarf
       @decision_tree.examples = @examples.keys
       pending = []
       pending.push @decision_tree
+      used_attributes = []
       until pending.empty?
         node = pending.pop
         if classification = homogenous_examples(node)
@@ -36,12 +43,13 @@ module Dwarf
           #starts
         else
           infogains = {}
-          @example_attributes.each do |example_attribute|
+          (@example_attributes-used_attributes).each do |example_attribute|
             infogains[information_gain(node.examples,example_attribute)] = example_attribute
           end
           best_gain = infogains.keys.sort[0]
           best_attribute = infogains[best_gain]
           split(node,best_attribute).each {|child_node| pending.push(child_node)}
+          used_attributes << best_attribute
         end
       end
       self.classifier_logic = codify_tree(@decision_tree)
@@ -66,20 +74,22 @@ module Dwarf
       if decision_tree.attribute
         lines << ("  "*depth)+"case example.#{decision_tree.attribute}"
         decision_tree.children.each do |child|
-          lines << ("  "*depth)+"when #{child.name}"
+          lines << ("  "*depth)+"when #{codify_literal(child.name)}"
           codify_node(child, lines, depth + 1)
         end
         lines << ("  "*depth)+"end"
       elsif decision_tree.classification
-        classification = decision_tree.classification
-        if classification.class == Symbol
-          classification_string = ":#{classification}"
-        elsif classification.class == String
-          classification_string = "\"#{classification}\""
-        else
-          classification_string = classification.to_s
-        end
-        lines << ("  "*depth)+"return #{classification_string}"
+        lines << ("  "*depth)+"return #{codify_literal(decision_tree.classification)}"
+      end
+    end
+
+    def codify_literal(object)
+      if object.class == Symbol
+        ":#{object}"
+      elsif object.class == String
+        "\"#{object}\""
+      else
+        object.to_s
       end
     end
     
