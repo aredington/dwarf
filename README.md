@@ -46,5 +46,5 @@ seen most often for that particular feature set.
 
 ## Contribute
 
-Fork the dwarf project on github (http://github.com/aredington/dwarf)
-and then send a pull request.
+Fork the dwarf project on github (http://github.com/aredington/dwarf),
+document your changes, and then send a pull request.

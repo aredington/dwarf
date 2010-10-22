@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Alex Redington"]
   s.email       = ["aredington@gmail.com"]
   s.homepage    = "http://github.com/aredington/dwarf"
-  s.summary     = "C4.5 for ActiveRecord objects"
-  s.description = "Dwarf is an implementation of the C4.5 algorithm targeted for use in the Rails 3 console environment for classifying ActiveRecord objects."
+  s.summary     = "Decision tree learning for ActiveRecord objects"
+  s.description = "Dwarf is an implementation of decision tree learning algorithms targeted for use in the Rails 3 console environment for classifying ActiveRecord objects."
 
   s.required_rubygems_version = ">= 1.3.6"
   s.rubyforge_project         = "dwarf"
