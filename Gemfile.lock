@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dwarf (0.0.2)
+    dwarf (0.0.3)
       rubytree (>= 0.8.1)
 
 GEM

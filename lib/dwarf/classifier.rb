@@ -84,10 +84,9 @@ module Dwarf
     end
 
     def codify_literal(object)
-      if object.class == Symbol
-        ":#{object}"
-      elsif object.class == String
-        "\"#{object}\""
+      case object
+        when Symbol then ":#{object}"
+        when String then "\"#{object}\""
       else
         object.to_s
       end
