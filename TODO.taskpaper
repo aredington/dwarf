@@ -1,0 +1,14 @@
+Dwarf 1.0 Features:
+
+- Handle nested features (e.g. example.engine.cylinders)
+- Create queries to find all instances of a given classification
+- Handle messy data well (nil examples, examples with nil features, examples with nil subfeatures)
+- Treat hashes as nested features.
+
+Dwarf Nice To Haves:
+
+- meta-features based on type, e.g. parity(car.engine.cylinders) can be :even or :odd
+- Bayesian classification of text fields.
+- Junk uniquely identifying features (implicit in info gain calculations? add tests to verify!)
+- Modular feature enumeration and feature fetching code. (Don't rely on attributes and example.attribute to be your only duck type checks!)
+- A world-generation tool to create internally consistent data sets to measure dwarf's learning against. Maybe we can call it "frawd".
