@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), *%w[spec_helper])
+require File.join(File.dirname(__FILE__), *%w[.. spec_helper.rb])
 
 describe Dwarf::Classifier do  
   
@@ -72,6 +72,15 @@ describe Dwarf::Classifier do
       @classifier.classify(@example2).should eq(:german)
       @classifier.classify(@example3).should eq(:american)
       @classifier.classify(@example4).should eq(:german)
+    end
+
+    it "returns sets of cars based on class" do
+      mock_car_examples
+      @classifier.add_examples(@example1 => :japanese, @example2 => :german, @example3 => :american, @example4 => :german)
+      @classifier.learn!
+      all_cars = [@example1, @example2, @example3, @example4]
+      japanese_cars = @classifier.find_by_classification(all_cars, :japanese)
+      japanese_cars.should == [@example1]
     end
     
   end

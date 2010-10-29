@@ -1,6 +1,10 @@
+
 Dwarf 1.0 Features:
 
-- Create queries to find all instances of a given classification @priority(3)
+  Find all instances with a given classification given a world. @alex @priority(3)
+- Create queries to find all instances of a given classification. @priority(1)
+- Make logic of a query for a given classification readble (as Ruby, or SQL, or ...) @priority(1)
+- Generate large worlds with consistent instances to test against. @muness @priority(2)
 - Handle nested features (e.g. example.engine.cylinders) @priority(1)
 - Handle messy data well (nil examples, examples with nil features, examples with nil subfeatures) @priority(2)
 - Treat hashes as nested features. @priority(1)

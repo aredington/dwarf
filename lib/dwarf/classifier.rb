@@ -31,6 +31,17 @@ module Dwarf
       implement_classify
     end
 
+    def find_by_classification(world, classification)
+      matches = []
+      world.each do |instance|
+        if classify(instance) == classification
+          matches << instance
+        end
+      end
+      matches
+    end
+    
+
     private
 
     def converge_tree
@@ -42,9 +53,9 @@ module Dwarf
         if classification = homogenous_examples(node)
           node.classification = classification
         elsif no_valuable_attributes?(node) && node.parent
-          node.parent.classification= expected_value(node.examples)
+          node.parent.classification = expected_value(node.examples)
         elsif no_valuable_attributes?(node)
-          classifier_logic = expected_value(node.examples)
+          node.classification = expected_value(node.examples)
         elsif false #stub branch
           #C4.5 would also allow for previously unseen classifications
           #dwarf needs to correctly handle a pre-existing tree when
@@ -152,7 +163,8 @@ module Dwarf
       set_size = example_subset.length.to_f
       examples_inversion = invert_with_dups(attribute_map(example_subset,attribute))
       occurrences = examples_inversion.merge(examples_inversion) { |key, value| value.length }
-      entropy(example_subset) - attribute_values(example_subset,attribute).inject(0.0) do |sum, attribute_value|
+      entropy(example_subset) -
+        attribute_values(example_subset,attribute).inject(0.0) do |sum, attribute_value|
         sum + (occurrences[attribute_value]/set_size) * entropy(examples_inversion[attribute_value])
       end
     end

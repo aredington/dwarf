@@ -19,6 +19,7 @@ GEM
       rspec-core (~> 2.0.1)
       rspec-expectations (~> 2.0.1)
     rubytree (0.8.1)
+    watchr (0.7)
 
 PLATFORMS
   ruby
@@ -28,3 +29,4 @@ DEPENDENCIES
   dwarf!
   rspec (>= 2.0.1)
   rubytree (>= 0.8.1)
+  watchr (>= 0.7)
