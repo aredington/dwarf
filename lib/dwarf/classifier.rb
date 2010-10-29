@@ -1,5 +1,6 @@
 module Dwarf
   class Classifier
+
     attr_accessor :examples
     attr_accessor :example_attributes
     attr_accessor :classifier_logic
@@ -7,6 +8,7 @@ module Dwarf
     def initialize()
       @examples, @example_attributes = {}, []
       @decision_tree = TreeNode.new("ROOT")
+      @nil_name = Object.new.to_s
     end
 
     def add_examples(example_hash)
@@ -41,8 +43,9 @@ module Dwarf
       matches
     end
     
-
     private
+
+    include ExampleManagement
 
     def converge_tree
       pending = []
@@ -72,7 +75,7 @@ module Dwarf
     def homogenize_children(node, used_attributes)
       infogains = {}
       (@example_attributes-used_attributes).each do |example_attribute|
-        infogains[information_gain(node.examples,example_attribute)] =
+        infogains[Information::information_gain(node.examples,example_attribute,@examples)] =
           example_attribute
       end
       best_gain = infogains.keys.sort[0]
@@ -107,6 +110,7 @@ module Dwarf
 
     def codify_literal(object)
       case object
+        when @nil_name then "nil"
         when Symbol then ":#{object}"
         when String then "\"#{object}\""
       else
@@ -119,6 +123,9 @@ module Dwarf
       example_subset = node.examples
       examples_inversion = invert_with_dups(attribute_map(example_subset,attribute))
       examples_inversion.each do |key, value|
+        if key.nil?
+          key = @nil_name
+        end
         child_node = TreeNode.new(key)
         child_node.examples = value
         node << child_node
@@ -128,21 +135,20 @@ module Dwarf
     end
 
     def expected_value(example_subset)
-      examples_inversion = invert_with_dups(classification_map(example_subset))
+      examples_inversion = invert_with_dups(classification_map(example_subset, @examples))
       occurrences = examples_inversion.merge(examples_inversion) { |key, value| value.length }
       occurrences.keys.sort { |key| occurrences[key] }[0]
     end
 
     def no_valuable_attributes?(node)
       @example_attributes.map {|example_attribute|
-        information_gain(node.examples, example_attribute)}.each {|info_gain|
+        Information::information_gain(node.examples, example_attribute, @examples)}.each {|info_gain|
         return false if info_gain != 0}
       return true
     end
     
-
     def homogenous_examples(node)
-      classifications = classifications(node.examples)
+      classifications = filter_classifications(@examples, node.examples)
       if classifications.length == 1
         return classifications[0]
       else
@@ -150,50 +156,5 @@ module Dwarf
       end
     end
 
-    def entropy(example_subset)
-      set_size = example_subset.length.to_f
-      examples_inversion = invert_with_dups(classification_map(example_subset))
-      occurences = examples_inversion.merge(examples_inversion) { |key, value| value.length.to_f }
-      0.0 - classifications(example_subset).inject(0.0) do |sum, classification|
-        sum + ((occurences[classification]/set_size)* Math.log2((occurences[classification]/set_size)))
-      end
-    end
-
-    def information_gain(example_subset,attribute)
-      set_size = example_subset.length.to_f
-      examples_inversion = invert_with_dups(attribute_map(example_subset,attribute))
-      occurrences = examples_inversion.merge(examples_inversion) { |key, value| value.length }
-      entropy(example_subset) -
-        attribute_values(example_subset,attribute).inject(0.0) do |sum, attribute_value|
-        sum + (occurrences[attribute_value]/set_size) * entropy(examples_inversion[attribute_value])
-      end
-    end
-
-    def classifications(example_subset)
-      example_subset.map {|example| @examples[example]}.compact
-    end
-
-    def classification_map(example_subset)
-      classification_map = {}
-      example_subset.each {|example| classification_map[example] = @examples[example]}
-      classification_map
-    end
-
-    def attribute_values(example_subset, attribute)
-      example_subset.map {|example| example.method(attribute.to_sym).call}.compact
-    end
-
-    def attribute_map(example_subset, attribute)
-      example_map = {}
-      example_subset.each {|example| example_map[example] = example.method(attribute.to_sym).call}
-      example_map
-    end
-
-    def invert_with_dups(hash)
-      inversion = {}
-      hash.values.each {|value| inversion[value] = []}
-      hash.keys.each {|key| inversion[hash[key]] << key}
-      inversion
-    end    
   end
 end
