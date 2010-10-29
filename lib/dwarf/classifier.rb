@@ -50,13 +50,16 @@ module Dwarf
     def converge_tree
       pending = []
       pending.push @decision_tree
-      used_attributes = []
       until pending.empty?
         node = pending.pop
         if classification = homogenous_examples(node)
           node.classification = classification
         elsif no_valuable_attributes?(node) && node.parent
-          node.parent.classification = expected_value(node.examples)
+          if split_nil_children = check_nil_split(node)
+            split_nil_children.each {|child_node| pending.push(child_node)}
+          else
+            create_expected_value(node)
+          end
         elsif no_valuable_attributes?(node)
           node.classification = expected_value(node.examples)
         elsif false #stub branch
@@ -64,23 +67,60 @@ module Dwarf
           #dwarf needs to correctly handle a pre-existing tree when
           #learn! is called
         else
-          split_children, best_attribute =
-            homogenize_children(node, used_attributes)
+          split_children = homogenize_children(node)
           split_children.each {|child_node| pending.push(child_node)}
-          used_attributes << best_attribute
         end
       end
     end
 
-    def homogenize_children(node, used_attributes)
+    def check_nil_split(node)
       infogains = {}
+
+      used_attributes = used_attributes(node)
       (@example_attributes-used_attributes).each do |example_attribute|
-        infogains[Information::information_gain(node.examples,example_attribute,@examples)] =
+        infogains[Information::unfiltered_information_gain(node.examples,example_attribute,@examples)] =
           example_attribute
       end
       best_gain = infogains.keys.sort[0]
       best_attribute = infogains[best_gain]
-      return [split(node,best_attribute), best_attribute]
+      if best_gain > 0.0
+        return split(node, best_attribute)
+      end
+      
+    end
+    
+    def create_expected_value(node)
+      new_node = TreeNode.new(node.name)
+      expected_value = expected_value(node.examples)
+      new_node.classification = expected_value
+      parent = node.parent
+      parent.remove! node
+      parent << new_node
+      new_node << node
+    end
+
+    def used_attributes(node)
+      if node.parentage
+        node.parentage.map { |parent| parent.attribute }
+      else
+        []
+      end
+    end
+
+    def homogenize_children(node)
+      infogains = {}
+
+      used_attributes = used_attributes(node)
+      
+      (@example_attributes-used_attributes).each do |example_attribute|
+        infogains[Information::information_gain(node.examples,example_attribute,@examples)] =
+          example_attribute
+      end
+      
+      best_gain = infogains.keys.sort[0]
+      best_attribute = infogains[best_gain]
+
+      return split(node,best_attribute)
     end
 
     def implement_classify

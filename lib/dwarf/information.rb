@@ -18,11 +18,15 @@ module Dwarf
 
       def information_gain(example_subset, attribute, classifications)
         filtered_example_subset = filter_for_missing_attribute(example_subset, attribute)
+        unfiltered_information_gain(filtered_example_subset, attribute, classifications)
+      end
+
+      def unfiltered_information_gain(example_subset, attribute, classifications)
         set_size = example_subset.length.to_f
-        examples_inversion = invert_with_dups(attribute_map(filtered_example_subset,attribute))
+        examples_inversion = invert_with_dups(attribute_map(example_subset,attribute))
         occurrences = occurrences(examples_inversion)
-        heterogeneous_entropy = entropy(filtered_example_subset, classifications)
-        seen_attribute_values = attribute_values(filtered_example_subset,attribute)
+        heterogeneous_entropy = entropy(example_subset, classifications)
+        seen_attribute_values = attribute_values(example_subset,attribute)
         heterogeneous_entropy -
           sum_over(seen_attribute_values) do |attribute_value|
           frequency = occurrences[attribute_value]/set_size
