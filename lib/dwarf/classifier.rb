@@ -26,6 +26,14 @@ module Dwarf
 
     def learn!
       @decision_tree.examples = @examples.keys
+      converge_tree
+      self.classifier_logic = codify_tree(@decision_tree)
+      implement_classify
+    end
+
+    private
+
+    def converge_tree
       pending = []
       pending.push @decision_tree
       used_attributes = []
@@ -39,24 +47,27 @@ module Dwarf
           classifier_logic = expected_value(node.examples)
         elsif false #stub branch
           #C4.5 would also allow for previously unseen classifications
-          #dwarf's API dictates all classifications are known before learning
-          #starts
+          #dwarf needs to correctly handle a pre-existing tree when
+          #learn! is called
         else
-          infogains = {}
-          (@example_attributes-used_attributes).each do |example_attribute|
-            infogains[information_gain(node.examples,example_attribute)] = example_attribute
-          end
-          best_gain = infogains.keys.sort[0]
-          best_attribute = infogains[best_gain]
-          split(node,best_attribute).each {|child_node| pending.push(child_node)}
+          split_children, best_attribute =
+            homogenize_children(node, used_attributes)
+          split_children.each {|child_node| pending.push(child_node)}
           used_attributes << best_attribute
         end
       end
-      self.classifier_logic = codify_tree(@decision_tree)
-      implement_classify
     end
 
-    private
+    def homogenize_children(node, used_attributes)
+      infogains = {}
+      (@example_attributes-used_attributes).each do |example_attribute|
+        infogains[information_gain(node.examples,example_attribute)] =
+          example_attribute
+      end
+      best_gain = infogains.keys.sort[0]
+      best_attribute = infogains[best_gain]
+      return [split(node,best_attribute), best_attribute]
+    end
 
     def implement_classify
       classify_impl = "def classify(example)\n#{self.classifier_logic}\nend"
