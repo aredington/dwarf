@@ -19,7 +19,7 @@ module Dwarf
 
     def add_example(example_record, classification)
       @examples[example_record]=classification
-      @example_attributes |= example_record.attributes
+      @example_attributes |= example_record.attribute_names
     end
 
     def classify(example)

@@ -23,21 +23,21 @@ describe Dwarf::Classifier do
 
     it "stores examples" do
       @example3 = double('example3')
-      @example3.stub(:attributes) { [] }
+      @example3.stub(:attribute_names) { [] }
       @classifier.add_example(@example3, :irish)
       @classifier.examples.should include(@example3)
     end
 
     it "enumerate example attributes" do
       @example_with_attributes = double('attrs')
-      @example_with_attributes.stub(:attributes) { ["height", "branch_density"] }
+      @example_with_attributes.stub(:attribute_names) { ["height", "branch_density"] }
       @classifier.add_example(@example_with_attributes, :pine)
       @classifier.example_attributes.should include("height", "branch_density")
     end
 
     it "gracefully accepts examples with nil attributes" do
       @example_with_nil_attributes = double('nils')
-      @example_with_nil_attributes.stub(:attributes) { ["height", "branch_density"] }
+      @example_with_nil_attributes.stub(:attribute_names) { ["height", "branch_density"] }
       @example_with_nil_attributes.stub(:height) { nil }
       @example_with_nil_attributes.stub(:branch_density) { :high }
       lambda {@classifier.add_example(@example_with_nil_attributes, :pine)}.should_not raise_exception     
@@ -49,7 +49,7 @@ describe Dwarf::Classifier do
 
     it "only implements classify on the learning instance" do
       @example = double('example3')
-      @example.stub(:attributes) { [] }
+      @example.stub(:attribute_names) { [] }
       @class2 = Dwarf::Classifier.new()
       @classifier.add_example(@example, :round)
       @classifier.learn!
@@ -100,7 +100,6 @@ describe Dwarf::Classifier do
                                  @example5 => :japanese,
                                  @example6 => :japanese)
         @classifier.learn!
-        puts @classifier.classifier_logic
         @classifier.classify(@example1).should == :japanese
         @classifier.classify(@example2).should == :german
         @classifier.classify(@example3).should == :american

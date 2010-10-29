@@ -22,6 +22,8 @@ class FakeCar
   def attributes
     ["body_style", "cylinders"]
   end
+
+  alias_method :attribute_names, :attributes
   
   def to_s
     "#{body_style} with #{cylinders} cylinders"
