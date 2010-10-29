@@ -29,22 +29,10 @@ describe Dwarf::Classifier do
 
   context "classifying cars" do
     def mock_car_examples
-      @example1 = double('example1')
-      @example1.stub(:body_style) { :boxy }
-      @example1.stub(:cylinders) { 4 }
-      @example1.stub(:attributes) { ["body_style", "cylinders"] }
-      @example2 = double('example2')
-      @example2.stub(:body_style) { :swoopy }
-      @example2.stub(:cylinders) { 6 }
-      @example2.stub(:attributes) { ["body_style", "cylinders"] }
-      @example3 = double('example3')
-      @example3.stub(:body_style) { :angry }
-      @example3.stub(:cylinders) { 8 }
-      @example3.stub(:attributes) { ["body_style", "cylinders"] }
-      @example4 = double('example4')
-      @example4.stub(:body_style) {:swoopy}
-      @example4.stub(:cylinders) {8}
-      @example4.stub(:attributes) { ["body_style", "cylinders"] }
+      @example1 = FakeCar.new(:body_style => :boxy, :cylinders => 4)
+      @example2 = FakeCar.new(:body_style => :swoopy, :cylinders => 6)
+      @example3 = FakeCar.new(:body_style => :angry, :cylinders => 8)
+      @example4 = FakeCar.new(:body_style => :swoopy, :cylinders => 8)
     end
    
     it "enumerate example attributes" do
