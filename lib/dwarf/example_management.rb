@@ -8,7 +8,7 @@ module Dwarf
     end
 
     def invert_with_dups(hash)
-      inversion = {}
+      inversion = { }
       hash.values.each {|value| inversion[value] = []}
       hash.keys.each {|key| inversion[hash[key]] << key}
       inversion

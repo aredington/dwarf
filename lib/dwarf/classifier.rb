@@ -4,6 +4,7 @@ module Dwarf
     attr_accessor :examples
     attr_accessor :example_attributes
     attr_accessor :classifier_logic
+    attr_reader :decision_tree
 
     def initialize()
       @examples, @example_attributes = {}, []
@@ -77,7 +78,7 @@ module Dwarf
       infogains = {}
 
       used_attributes = used_attributes(node)
-      (@example_attributes-used_attributes).each do |example_attribute|
+      (filtered_attributes-used_attributes).each do |example_attribute|
         infogains[Information::unfiltered_information_gain(node.examples,example_attribute,@examples)] =
           example_attribute
       end
@@ -107,12 +108,32 @@ module Dwarf
       end
     end
 
+    def attribute_homogeneous?(example_subset, attribute)
+      invert_with_dups(attribute_map(example_subset, attribute)).keys.size == 1
+    end
+    
+    def heterogeneous_attributes
+      @example_attributes.reject { |attr| attribute_homogeneous?(@examples.keys, attr) }
+    end
+
+    def attribute_clusters?(example_subset, attribute)
+      invert_with_dups(attribute_map(example_subset, attribute)).keys.size == example_subset.size
+    end
+
+    def clustering_attributes
+      @example_attributes.select {|attr| attribute_clusters?(@examples.keys, attr) }
+    end
+
+    def filtered_attributes
+      clustering_attributes | heterogeneous_attributes
+    end
+        
     def homogenize_children(node)
       infogains = {}
 
       used_attributes = used_attributes(node)
       
-      (@example_attributes-used_attributes).each do |example_attribute|
+      (filtered_attributes-used_attributes).each do |example_attribute|
         infogains[Information::information_gain(node.examples,example_attribute,@examples)] =
           example_attribute
       end
@@ -181,7 +202,7 @@ module Dwarf
     end
 
     def no_valuable_attributes?(node)
-      @example_attributes.map {|example_attribute|
+      filtered_attributes.map {|example_attribute|
         Information::information_gain(node.examples, example_attribute, @examples)}.each {|info_gain|
         return false if info_gain != 0}
       return true

@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__), *%w[.. lib dwarf])
+require File.join(File.dirname(__FILE__), *%w[. frawd])
 
 # http://blog.jayfields.com/2007/04/ruby-assigning-instance-variables-in.html
 class Module
@@ -16,11 +17,17 @@ class Module
 end
 
 class FakeCar
-  initializer :body_style, :cylinders
-  attr_accessor :body_style, :cylinders
+  initializer :body_style, :cylinders, :wheel_diameter, :transmission
+  attr_accessor :body_style, :cylinders, :wheel_diameter, :transmission
+
+  @@vin_counter = 0
+  
+  def vin
+    @vin ||= @@vin_counter+=1
+  end
 
   def attributes
-    ["body_style", "cylinders"]
+    ["body_style", "cylinders", "wheel_diameter", "transmission", "vin"]
   end
 
   alias_method :attribute_names, :attributes

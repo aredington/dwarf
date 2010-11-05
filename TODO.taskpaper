@@ -7,9 +7,10 @@ Dwarf 1.0 Features:
 - Generate large worlds with consistent instances to test against. @muness @priority(2)
 - Handle nested features (e.g. example.engine.cylinders) @priority(1)
   Handle messy data well (nil examples, examples with nil features, examples with nil subfeatures) @alex @priority(2)
-- Resolve weird behavior when all examples are missing some attribute. @priority(1)
+  Resolve weird behavior when all examples are missing some attribute. @alex @sam @priority(1)
 - When attribute.nil? bisects a heterogenous group, we should probably split on that attribute. @priority(1)
   Refactor information theory methods out to enable unit testing. @alex @priority(3)
+  Eliminate features which are unique across all examples @sam @alex @priority(2)
 - Treat hashes as nested features. @priority(1)
 
 Dwarf Nice To Haves:
