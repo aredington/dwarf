@@ -1,3 +1,6 @@
 pkg/*
 *.gem
 .bundle
+/learn.callgrind
+/learn_profile
+/learn_profile.symbols
