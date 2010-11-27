@@ -3,4 +3,6 @@ module Dwarf
   require 'dwarf/information'
   require 'dwarf/tree_node'
   require 'dwarf/classifier'
+  require 'dwarf/proxies/base'
+  require 'dwarf/proxies/activerecord'
 end

@@ -1,3 +1,8 @@
+GIT
+  remote: git://github.com/rdp/ruby-prof.git
+  revision: 3dd842a5cc6cd58668c0c2308bb7a8942145a970
+  specs:
+
 PATH
   remote: .
   specs:
@@ -9,6 +14,7 @@ GEM
   specs:
     diff-lcs (1.1.2)
     faker (0.3.1)
+    perftools.rb (0.5.4)
     rspec (2.0.1)
       rspec-core (~> 2.0.1)
       rspec-expectations (~> 2.0.1)
@@ -29,6 +35,7 @@ DEPENDENCIES
   bundler (>= 1.0.0)
   dwarf!
   faker (>= 0.3.1)
+  perftools.rb (>= 0.5.4)
   rspec (>= 2.0.1)
   rubytree (>= 0.8.1)
   watchr (>= 0.7)

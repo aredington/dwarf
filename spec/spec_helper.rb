@@ -57,4 +57,3 @@ class FakeCar
     array
   end
 end
-

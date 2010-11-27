@@ -1,9 +1,9 @@
 module Dwarf
   module ExampleManagement
 
-    def classification_map(example_subset, classifications)
+    def classification_map(example_subset)
       classification_map = {}
-      example_subset.each {|example| classification_map[example] = classifications[example]}
+      example_subset.each {|example| classification_map[example] = example.classification}
       classification_map
     end
 
@@ -14,18 +14,14 @@ module Dwarf
       inversion
     end    
 
-    def eval_attribute(example,attribute)
-      example.method(attribute.to_sym).call
-    end
-
     def attribute_map(example_subset, attribute)
       example_map = {}
-      example_subset.each {|example| example_map[example] = eval_attribute(example, attribute)}
+      example_subset.each {|example| example_map[example] = example.feature_value(attribute)}
       example_map
     end
 
-    def filter_classifications(classifications,example_subset)
-      example_subset.map {|example| classifications[example]}.uniq
+    def filter_classifications(example_subset)
+      example_subset.map {|example| example.classification}.uniq
     end  
 
   end

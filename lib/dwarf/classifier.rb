@@ -7,7 +7,7 @@ module Dwarf
     attr_reader :decision_tree
 
     def initialize()
-      @examples, @example_attributes = {}, []
+      @examples, @example_attributes = [], []
       @decision_tree = TreeNode.new("ROOT")
       @nil_name = Object.new.to_s
     end
@@ -19,8 +19,9 @@ module Dwarf
     end
 
     def add_example(example_record, classification)
-      @examples[example_record]=classification
-      @example_attributes |= example_record.attribute_names
+      proxy = Proxies::ActiveRecord.new(example_record, classification)
+      @examples << proxy
+      @example_attributes |= proxy.feature_names
     end
 
     def classify(example)
@@ -28,7 +29,7 @@ module Dwarf
     end
 
     def learn!
-      @decision_tree.examples = @examples.keys
+      @decision_tree.examples = @examples
       converge_tree
       self.classifier_logic = codify_tree(@decision_tree)
       implement_classify
@@ -82,7 +83,7 @@ module Dwarf
         infogains[Information::unfiltered_information_gain(node.examples,example_attribute,@examples)] =
           example_attribute
       end
-      best_gain = infogains.keys.sort[0]
+      best_gain = infogains.keys.max
       best_attribute = infogains[best_gain]
       if best_gain > 0.0
         return split(node, best_attribute)
@@ -113,7 +114,7 @@ module Dwarf
     end
     
     def heterogeneous_attributes
-      @example_attributes.reject { |attr| attribute_homogeneous?(@examples.keys, attr) }
+      @example_attributes.reject { |attr| attribute_homogeneous?(@examples, attr) }
     end
 
     def attribute_clusters?(example_subset, attribute)
@@ -121,7 +122,7 @@ module Dwarf
     end
 
     def clustering_attributes
-      @example_attributes.select {|attr| attribute_clusters?(@examples.keys, attr) }
+      @example_attributes.select {|attr| attribute_clusters?(@examples, attr) }
     end
 
     def filtered_attributes
@@ -134,11 +135,11 @@ module Dwarf
       used_attributes = used_attributes(node)
       
       (filtered_attributes-used_attributes).each do |example_attribute|
-        infogains[Information::information_gain(node.examples,example_attribute,@examples)] =
+        infogains[Information::information_gain(node.examples,example_attribute)] =
           example_attribute
       end
       
-      best_gain = infogains.keys.sort[0]
+      best_gain = infogains.keys.max
       best_attribute = infogains[best_gain]
 
       return split(node,best_attribute)
@@ -198,18 +199,18 @@ module Dwarf
     def expected_value(example_subset)
       examples_inversion = invert_with_dups(classification_map(example_subset, @examples))
       occurrences = examples_inversion.merge(examples_inversion) { |key, value| value.length }
-      occurrences.keys.sort { |key| occurrences[key] }[0]
+      occurrences.keys.max_by { |key| occurrences[key] }
     end
 
     def no_valuable_attributes?(node)
       filtered_attributes.map {|example_attribute|
-        Information::information_gain(node.examples, example_attribute, @examples)}.each {|info_gain|
+        Information::information_gain(node.examples, example_attribute)}.each {|info_gain|
         return false if info_gain != 0}
       return true
     end
     
     def homogenous_examples(node)
-      classifications = filter_classifications(@examples, node.examples)
+      classifications = filter_classifications(node.examples)
       if classifications.length == 1
         return classifications[0]
       else

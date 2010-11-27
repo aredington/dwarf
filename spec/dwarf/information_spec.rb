@@ -25,18 +25,19 @@ describe Dwarf::Information do
 
   end
 
-  class Coin
+  class Coin < Dwarf::Proxies::Base
 
     def initialize(weighting)
       @weighting = weighting
       @faces = [:heads, :tails]
+      @classification = self.sample
     end
 
-    def attributes
-      "weighting"
+    def feature_names
+      ["weighting"]
     end
 
-    def weighting
+    def feature_value(feature_name)
       @weighting
     end
 
@@ -53,68 +54,58 @@ describe Dwarf::Information do
   context "entropy" do
     it "calculates correctly for heads and tails" do
       examples = []
-      classifications = {}
       coin = Coin.new(:fair)
       1000.times do
-        obj = Object.new
+        obj = Dwarf::Proxies::Base.new(nil,coin.sample)
         examples << obj
-        classifications[obj] = coin.sample
       end
-      entropy = Dwarf::Information.entropy(examples, classifications)
+      entropy = Dwarf::Information.entropy(examples)
       entropy.should > 0.99
       entropy.should <= 1.0
     end
 
     it "calculates correctly for 1d6" do
       examples = []
-      classifications = {}
       die = (1..6).map{|v| v}
       1000.times do
-        obj = Object.new
+        obj = Dwarf::Proxies::Base.new(nil,die.sample)
         examples << obj
-        classifications[obj] = die.sample
       end
-      entropy = Dwarf::Information.entropy(examples, classifications)
+      entropy = Dwarf::Information.entropy(examples)
       entropy.should > 0.99
       entropy.should <= 1.0      
     end
 
     it "calculates correctly for a deck of cards" do
       examples = []
-      classifications = {}
       deck = Deck.new
       1000.times do
-        obj = Object.new
+        obj = Dwarf::Proxies::Base.new(nil, deck.sample)
         examples << obj
-        classifications[obj] = deck.sample
       end
-      entropy = Dwarf::Information.entropy(examples, classifications)
+      entropy = Dwarf::Information.entropy(examples)
       entropy.should > 0.99
       entropy.should <= 1.0
     end
 
     it "calculates correctly with a weighted coin" do
       examples = []
-      classifications = {}
       1000.times do
-        obj = Object.new
+        obj = Dwarf::Proxies::Base.new(nil, (rand(100) == 99) ? :heads : :tails)
         examples << obj
-        classifications[obj] = (rand(100) == 99) ? :heads : :tails
       end
-      entropy = Dwarf::Information.entropy(examples,classifications)
+      entropy = Dwarf::Information.entropy(examples)
       entropy.should < 0.101 #With a perfect 99:1 distribution, entropy should == 0.0807...
       entropy.should >= 0.04
     end
 
     it "calculates correctly with a homogenous set" do
       examples = []
-      classifications = {}
       1000.times do
-        obj = Object.new
+        obj = Dwarf::Proxies::Base.new(nil, :heads)
         examples << obj
-        classifications[obj] = :heads
       end
-      entropy = Dwarf::Information.entropy(examples,classifications)
+      entropy = Dwarf::Information.entropy(examples)
       entropy.should == 0.0
     end
     
@@ -124,31 +115,26 @@ describe Dwarf::Information do
 
     it "calculates correctly splitting perfectly weighted coins" do
       examples = []
-      classifications = {}
       500.times do
-        coin = Coin.new(:heads)
+        coin = Coin.new(:heads) 
         examples << coin
-        classifications[coin] = coin.sample
       end
       500.times do
         coin = Coin.new(:tails)
         examples << coin
-        classifications[coin] = coin.sample
       end
-      information_gain = Dwarf::Information.information_gain(examples, "weighting", classifications)
+      information_gain = Dwarf::Information.information_gain(examples, "weighting")
       information_gain.should == 1.0
     end
 
     it "calculates worthless infogame for fair weighted coins" do
       examples = []
-      classifications = {}
       coin = Coin.new(:fair)
         1000.times do
         coin = Coin.new(:fair)
           examples << coin
-        classifications[coin] = coin.sample
       end
-      information_gain = Dwarf::Information.information_gain(examples, "weighting", classifications)
+      information_gain = Dwarf::Information.information_gain(examples, "weighting")
       information_gain.should == 0.0
     end
       

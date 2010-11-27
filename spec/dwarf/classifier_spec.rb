@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__), *%w[.. spec_helper.rb])
+require 'perftools'
 
 describe Dwarf::Classifier do  
   
@@ -78,7 +79,11 @@ describe Dwarf::Classifier do
          @frawd.training.each do |example, classification|
           @classifier.add_example(example, classification)
         end
-        @classifier.learn!
+
+        PerfTools::CpuProfiler.start("./learn_profile") do
+          @classifier.learn!
+        end
+
         success = 0
         @frawd.testing.each do |example, classification|
           success += 1 if @classifier.classify(example) == classification
