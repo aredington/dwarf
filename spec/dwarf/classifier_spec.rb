@@ -80,9 +80,7 @@ describe Dwarf::Classifier do
           @classifier.add_example(example, classification)
         end
 
-        PerfTools::CpuProfiler.start("./learn_profile") do
-          @classifier.learn!
-        end
+        @classifier.learn!
 
         success = 0
         @frawd.testing.each do |example, classification|
