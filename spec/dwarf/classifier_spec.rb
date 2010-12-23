@@ -70,23 +70,38 @@ describe Dwarf::Classifier do
       @class2.classify(@example).should  == nil
     end
 
-    context "frawd is dwarf backwards" do
-      before(:each) do
-         @frawd = Frawd.new(1,100)
-       end
-
-      it "is totally awesome" do
-         @frawd.training.each do |example, classification|
-          @classifier.add_example(example, classification)
+    context "with frawd examples" do
+      let(:frawd) {Frawd.new(5,500)}
+      it "successfully learns all prior failing test cases"
+      
+      it "learns a randomly generated test case", :pending => true do
+        frawd = Frawd.new(5,500)
+        training = frawd.training
+        testing = frawd.testing
+        begin
+          training.each do |example, classification|
+            @classifier.add_example(example, classification)
+          end
+          
+          @classifier.learn!
+          
+          success = 0
+          testing.each do |example, classification|
+            success += 1 if @classifier.classify(example) == classification
+          end
+          success.should == testing.size
+        rescue Exception => e
+          stamp = Time.now.strftime("%Y%m%d - %H%M%S %Z")
+          training_file = File.join(File.dirname(__FILE__), "..", "frawd", "#{stamp}_training.yml.gz")
+          testing_file = File.join(File.dirname(__FILE__), "..", "frawd", "#{stamp}_test.yml.gz")
+          Zlib::GzipWriter.open(training_file) do |gz|
+            gz.write YAML.dump(training)
+          end
+          Zlib::GzipWriter.open(testing_file) do |gz|
+            gz.write YAML.dump(testing)
+          end
+          raise e
         end
-
-        @classifier.learn!
-
-        success = 0
-        @frawd.testing.each do |example, classification|
-          success += 1 if @classifier.classify(example) == classification
-        end
-        success.should == @frawd.testing.size
       end
     end
 
