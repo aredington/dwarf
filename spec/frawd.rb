@@ -15,6 +15,13 @@ class Frawd
     @rules.each_leaf do |leaf|
       @leaves << leaf
     end
+    #Voodoo to avoid mocks. After we have built the rule tree,
+    # create an anonymous class which will accomodate all the 
+    # attributes generated in it's creation.
+    @example_class = Class.new
+    attribute_names = @attributes.map {|a| a[0]}
+    @example_class.send(:define_method, :attribute_names) {return attribute_names}
+    @example_class.module_eval(attribute_names.map{ |name| "attr_accessor :#{name}\n" }.join)
   end
 
   def types
@@ -70,10 +77,9 @@ class Frawd
   def generate_example
     node = @leaves.sample
     example_classification = node.classification
-    example = RSpec::Mocks::Mock.new('example')
+    example = @example_class.new
     node.parentage.unshift(node).each_cons(2) do |child, parent|
-      example.stub!(parent.attribute.to_sym) { child.name }
-      example.stub!(:attribute_names) { @attributes.map {|a| a[0]} }
+      example.send("#{parent.attribute}=".to_sym, child.name)
     end
     @attributes.each do |attribute|
       unless example.respond_to? attribute[0].to_sym

@@ -197,7 +197,7 @@ module Dwarf
     end
 
     def expected_value(example_subset)
-      examples_inversion = invert_with_dups(classification_map(example_subset, @examples))
+      examples_inversion = invert_with_dups(classification_map(example_subset))
       occurrences = examples_inversion.merge(examples_inversion) { |key, value| value.length }
       occurrences.keys.max_by { |key| occurrences[key] }
     end
