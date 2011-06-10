@@ -19,7 +19,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec", ">= 2.0.1"
   s.add_development_dependency "watchr", ">= 0.7"
   s.add_development_dependency "faker", ">= 0.3.1"
-  s.add_development_dependency "perftools.rb", ">= 0.5.4"
   s.add_development_dependency "fuubar", ">= 0.0.2"
 
   s.files        = `git ls-files`.split("\n")

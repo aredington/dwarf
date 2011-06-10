@@ -1,5 +1,4 @@
 require File.join(File.dirname(__FILE__), *%w[.. spec_helper.rb])
-require 'perftools'
 
 describe Dwarf::Classifier do  
   
